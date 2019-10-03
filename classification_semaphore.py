@@ -3,26 +3,22 @@
 
 
 import os
-import cv2
 import numpy as np
-import tensorflow as tf
 from tensorflow import keras
 
 """
 Exemple construit sur documentation tensorflow:
     https://www.tensorflow.org/tutorials/keras/classification
 
-simplifié avec les datas de:
-    https://github.com/sergeLabo/semaphore
+    En utilisant les datas de:
+        https://github.com/sergeLabo/semaphore
 
-Dans le fichier semaphore.npz:
-    60 000 images training
-    10 000 images test
-
-Les images font 40x40 pixels en gris, les valeurs de pixels 0 à 255 ramenées
-entre 0 et 1.
+    Dans le fichier semaphore.npz:
+        60 000 images training
+        10 000 images test
+        Les images font 40x40 pixels en gris, les valeurs de pixels 0 à 255
+        sont déjà ramenées entre 0 et 1.
 """
-
 
 # Chargement des images du semaphore
 fichier = np.load('./semaphore.npz')
@@ -41,7 +37,6 @@ test_labels = y_test
 L = "abcdefghijklmnopqrstuvwxyz "
 # Liste des 27 noms d'objets dans le dataset semaphore
 class_names = list(L)
-
 
 """
 Build the model:
@@ -78,8 +73,7 @@ Build the model:
 
 model = keras.Sequential([  keras.layers.Flatten(input_shape=(40, 40)),
                             keras.layers.Dense(128, activation='relu'),
-                            keras.layers.Dense(27, activation='softmax')
-                            ])
+                            keras.layers.Dense(27, activation='softmax') ])
 
 """
 Compile the model:
@@ -103,7 +97,7 @@ Compile the model:
 
 model.compile(  optimizer='adam',
                 loss='sparse_categorical_crossentropy',
-                metrics=['accuracy'])
+                metrics=['accuracy'] )
 
 """
 Training the model:
@@ -119,8 +113,7 @@ Training the model:
     To start training, call the `model.fit` method—so called because it "fits"
     the model to the training data:
 """
-model.fit(train_images, train_labels, epochs=3)
-
+model.fit(train_images, train_labels, epochs=2)
 
 """
 As the model trains, the loss and accuracy metrics are displayed. This model
@@ -161,23 +154,22 @@ You can see which label has the highest confidence value:
 print("Prédiction de la 1ère image:", np.argmax(predictions[0]))
 
 """
-Exemple de prédiction sur une image
+Finally, use the trained model to make a prediction about a single image.
+
+`model.predict` returns a list of lists—one list for each image in the batch of data. Grab the predictions for our (only) image in the batch
+
+# `tf.keras` models are optimized to make predictions on a *batch*, or collection, of examples at once. Accordingly, even though you're using a single image, you need to add it to a list
+
 """
-# Finally, use the trained model to make a prediction about a single image.
-# Grab an image from the test dataset.
-img = test_images[1]
 
-# `tf.keras` models are optimized to make predictions on a *batch*, or collection, of examples at once. Accordingly, even though you're using a single image, you need to add it to a list:
+print("\nTest sur 10 images")
+for i in range(10):
+    img = test_images[10*i]
+    # Add the image to a batch where it's the only member.
+    img = (np.expand_dims(img, 0))
 
-# Add the image to a batch where it's the only member.
-img = (np.expand_dims(img, 0))
-print("img.shape", img.shape)
-
-# Now predict the correct label for this image:
-predictions_single = model.predict(img)
-print("predictions_single", predictions_single)
-
-# `model.predict` returns a list of lists—one list for each image in the batch of data. Grab the predictions for our (only) image in the batch:
-print("np.argmax(predictions_single[0])", np.argmax(predictions_single[0]))
-
-# And the model predicts a label as expected.
+    # Now predict the correct label for this image
+    # Retourne une liste de 27 prédictions
+    predictions_single = model.predict(img)
+    print("Image: {} Prédiction {}".format( test_labels[10*i],
+                                            np.argmax(predictions_single[0])))
